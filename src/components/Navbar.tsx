@@ -8,7 +8,7 @@ import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false); // ✅ mobile menu toggle
+  const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -42,12 +42,14 @@ export default function Navbar() {
     }
   };
 
+  // ✅ links
   const links = !isAuthenticated
     ? [
         { href: "/login", label: "Login" },
         { href: "/signup", label: "Signup" },
       ]
     : [
+        { href: "/todos", label: "Todos" }, // ✅ New Todos button
         { href: "/profile", label: "Profile" },
         { href: "/logout", label: "Logout", onClick: handleLogout },
       ];

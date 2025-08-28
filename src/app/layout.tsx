@@ -7,9 +7,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Pixel TODOs",
-  description: "MERN stack todo app with Next.js + shadcn",icons: {
-    icon: "/favicon.ico", // 👈 point to your favicon
-  },
+  description: "MERN stack todo app with Next.js + shadcn"
+
 
 };
 
