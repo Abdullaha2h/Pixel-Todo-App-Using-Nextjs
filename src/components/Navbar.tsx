@@ -56,7 +56,7 @@ export default function Navbar() {
     <nav className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-4 mx-6 mt-4 shadow relative">
       <div className="flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          PIXEL TODO's
+          PIXEL TODOs
         </Link>
 
         {/* Desktop links */}
