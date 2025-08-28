@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Todo = {
   _id: string;
@@ -22,14 +23,23 @@ export default function TodosPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // ✅ fetch all todos
+  const router = useRouter();
+
+  // ✅ check auth and fetch todos
   const fetchTodos = async () => {
     try {
       const res = await fetch("/api/todos", { cache: "no-store" });
-      const data = await res.json();
-      if (Array.isArray(data.todos)) setTodos(data.todos);
-      else setTodos([]);
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        setTodos([]);
+      } else {
+        const data = await res.json();
+        setIsAuthenticated(true);
+        if (Array.isArray(data.todos)) setTodos(data.todos);
+        else setTodos([]);
+      }
     } catch (err) {
       console.error(err);
       setTodos([]);
@@ -53,7 +63,7 @@ export default function TodosPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setTodos([data.todo, ...todos]); // ✅ add new todo to state with content
+        setTodos([data.todo, ...todos]);
         setNewTitle("");
         setNewContent("");
       }
@@ -62,7 +72,6 @@ export default function TodosPage() {
     }
   };
 
-  // ✅ toggle completed
   const toggleTodo = async (id: string, completed: boolean) => {
     try {
       const res = await fetch(`/api/todos/${id}`, {
@@ -76,7 +85,6 @@ export default function TodosPage() {
     }
   };
 
-  // ✅ delete
   const deleteTodo = async (id: string) => {
     try {
       const res = await fetch(`/api/todos/${id}`, { method: "DELETE" });
@@ -86,14 +94,12 @@ export default function TodosPage() {
     }
   };
 
-  // ✅ start editing
   const startEdit = (todo: Todo) => {
     setEditingId(todo._id);
     setEditTitle(todo.title);
     setEditContent(todo.content || "");
   };
 
-  // ✅ save edit
   const saveEdit = async (id: string) => {
     try {
       const res = await fetch(`/api/todos/${id}`, {
@@ -103,7 +109,7 @@ export default function TodosPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setTodos(todos.map((t) => (t._id === id ? data.todo : t))); // ✅ update state with content
+        setTodos(todos.map((t) => (t._id === id ? data.todo : t)));
         setEditingId(null);
       }
     } catch (err) {
@@ -112,6 +118,15 @@ export default function TodosPage() {
   };
 
   if (loading) return <p className="text-center mt-10">Loading todos...</p>;
+
+  // ✅ if not logged in
+  if (!isAuthenticated)
+    return (
+      <div className="flex flex-col items-center justify-center mt-20 space-y-4">
+        <p className="text-lg text-muted-foreground">You must be logged in to see your todos.</p>
+        <Button onClick={() => router.push("/login")}>Go to Login</Button>
+      </div>
+    );
 
   return (
     <div className="max-w-2xl mx-auto mt-10 space-y-4">
