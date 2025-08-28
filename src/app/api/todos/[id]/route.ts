@@ -6,7 +6,7 @@ import Todo from "@/models/Todo";
 // ✅ PATCH update todo
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -14,7 +14,7 @@ export async function PATCH(
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id } = context.params;
+    const { id } = await context.params; // ✅ await params
     const { title, content, completed } = await req.json();
 
     const todo = await Todo.findOneAndUpdate(
@@ -26,7 +26,7 @@ export async function PATCH(
     if (!todo)
       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
 
-    return NextResponse.json({ todo });
+    return NextResponse.json({ todo: todo.toObject() }, { status: 200 });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
@@ -39,7 +39,7 @@ export async function PATCH(
 // ✅ DELETE todo
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -47,7 +47,7 @@ export async function DELETE(
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id } = context.params;
+    const { id } = await context.params; // ✅ await params
 
     const deletedTodo = await Todo.findOneAndDelete({
       _id: id,
@@ -57,10 +57,10 @@ export async function DELETE(
     if (!deletedTodo)
       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
 
-    return NextResponse.json({
-      message: "Deleted",
-      todo: deletedTodo,
-    });
+    return NextResponse.json(
+      { message: "Deleted", todo: deletedTodo.toObject() },
+      { status: 200 }
+    );
   } catch (err) {
     console.error(err);
     return NextResponse.json(
