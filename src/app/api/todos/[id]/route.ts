@@ -1,16 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { verifyUser } from "@/lib/auth";
 import Todo from "@/models/Todo";
 
 // ✅ PATCH update todo
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
   try {
     await connectDB();
     const user = await verifyUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { id } = params;
+    const { id } = context.params;
     const { title, content, completed } = await req.json();
 
     const todo = await Todo.findOneAndUpdate(
@@ -19,28 +23,49 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       { new: true }
     );
 
-    if (!todo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+    if (!todo)
+      return NextResponse.json({ error: "Todo not found" }, { status: 404 });
 
-    return NextResponse.json({ todo: todo.toObject() }, { status: 200 });
+    return NextResponse.json({ todo });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
-// ✅ DELETE
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+// ✅ DELETE todo
+export async function DELETE(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
   try {
     await connectDB();
     const user = await verifyUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const deletedTodo = await Todo.findOneAndDelete({ _id: params.id, userId: user._id });
-    if (!deletedTodo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+    const { id } = context.params;
 
-    return NextResponse.json({ message: "Deleted", todo: deletedTodo.toObject() }, { status: 200 });
+    const deletedTodo = await Todo.findOneAndDelete({
+      _id: id,
+      userId: user._id,
+    });
+
+    if (!deletedTodo)
+      return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+
+    return NextResponse.json({
+      message: "Deleted",
+      todo: deletedTodo,
+    });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
